@@ -3,6 +3,7 @@ import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { Customer } from './customer.entity';
 import { Account } from './account.entity';
 import { OrderFrom, OrderStatus } from 'src/types/OrderType';
+import { CustomerProject } from './customer-project.entity';
 
 @Entity()
 export class CustomerOrder {
@@ -82,4 +83,7 @@ export class CustomerOrder {
 
   @ManyToOne(() => Account, { nullable: true })
   account: Account;
+
+  @ManyToOne(() => CustomerProject, { nullable: true })
+  project: CustomerProject;
 }

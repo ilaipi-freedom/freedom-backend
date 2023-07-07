@@ -7,6 +7,7 @@ import { CustomerRemark } from './entities/customer-remark.entity';
 import { Account } from './entities/account.entity';
 import { CustomerOrder } from './entities/customer-order.entity';
 import { CustomerPayment } from './entities/customer-payment.entity';
+import { CustomerProject } from './entities/customer-project.entity';
 
 const entities = [
   Account,
@@ -14,6 +15,7 @@ const entities = [
   CustomerRemark,
   CustomerOrder,
   CustomerPayment,
+  CustomerProject,
 ];
 
 @Global()
