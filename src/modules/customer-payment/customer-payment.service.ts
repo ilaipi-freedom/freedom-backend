@@ -11,8 +11,10 @@ export class CustomerPaymentService {
     private readonly customerPaymentRepository: Repository<CustomerPayment>,
   ) {}
 
-  async list() {
-    const list = await this.customerPaymentRepository.find();
+  async list(customerId: string) {
+    const list = await this.customerPaymentRepository.find({
+      where: { customer: { id: customerId } },
+    });
     return list;
   }
 

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, Query } from '@nestjs/common';
 
 import { CustomerRemarkService } from './customer-remark.service';
 import { CustomerRemark } from 'src/database/entities/customer-remark.entity';
@@ -7,8 +7,8 @@ import { CustomerRemark } from 'src/database/entities/customer-remark.entity';
 export class CustomerRemarkController {
   constructor(private readonly customerRemarkService: CustomerRemarkService) {}
   @Get('/list')
-  async list() {
-    return this.customerRemarkService.list();
+  async list(@Query('customerId') customerId: string) {
+    return this.customerRemarkService.list(customerId);
   }
 
   @Post()

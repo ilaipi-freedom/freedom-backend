@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, Query } from '@nestjs/common';
 
 import { CustomerPayment } from 'src/database/entities/customer-payment.entity';
 import { CustomerPaymentService } from './customer-payment.service';
@@ -9,8 +9,8 @@ export class CustomerPaymentController {
     private readonly customerPaymentService: CustomerPaymentService,
   ) {}
   @Get('/list')
-  async list() {
-    return this.customerPaymentService.list();
+  async list(@Query('customerId') customerId: string) {
+    return this.customerPaymentService.list(customerId);
   }
 
   @Post()

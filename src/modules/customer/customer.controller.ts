@@ -1,7 +1,17 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 
 import { CustomerService } from './customer.service';
 import { Customer } from 'src/database/entities/customer.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('customer')
 export class CustomerController {
@@ -23,5 +33,11 @@ export class CustomerController {
   @Put('/:id')
   async update(@Body() payload: Customer) {
     return this.customerService.update(payload);
+  }
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadFile(@UploadedFile() file: Express.Multer.File) {
+    return this.customerService.upload(file);
   }
 }

@@ -11,8 +11,10 @@ export class CustomerRemarkService {
     private readonly customerRemarkRepository: Repository<CustomerRemark>,
   ) {}
 
-  async list() {
-    const list = await this.customerRemarkRepository.find();
+  async list(customerId: string) {
+    const list = await this.customerRemarkRepository.find({
+      where: { customer: { id: customerId } },
+    });
     return list;
   }
 
