@@ -6,6 +6,7 @@ import { MysqlModule } from './database/mysql.module';
 
 import { CustomerModule } from './modules/customer/customer.module';
 import { CustomerRemarkModule } from './modules/customer-remark/customer-remark.module';
+import { CustomerOrderModule } from './modules/customer-order/customer-order.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { CustomerRemarkModule } from './modules/customer-remark/customer-remark.
     MysqlModule,
     CustomerModule,
     CustomerRemarkModule,
+    CustomerOrderModule,
   ],
 })
 export class AppModule {}

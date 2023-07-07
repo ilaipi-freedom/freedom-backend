@@ -3,8 +3,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Customer } from './entities/customer.entity';
+import { CustomerRemark } from './entities/customer-remark.entity';
+import { Account } from './entities/account.entity';
+import { CustomerOrder } from './entities/customer-order.entity';
 
-const entities = [Customer];
+const entities = [Account, Customer, CustomerRemark, CustomerOrder];
 
 @Global()
 @Module({

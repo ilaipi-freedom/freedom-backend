@@ -1,4 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+
+import { Account } from './account.entity';
 
 @Entity()
 export class Customer {
@@ -22,4 +24,7 @@ export class Customer {
 
   @Column()
   firstMessageTime: Date;
+
+  @ManyToOne(() => Account)
+  account: Account;
 }
