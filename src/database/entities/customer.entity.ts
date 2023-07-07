@@ -7,22 +7,22 @@ export class Customer {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ nullable: true })
   weixin: string;
 
-  @Column()
+  @Column({ nullable: true })
   weixinId: string;
 
-  @Column()
+  @Column({ nullable: true })
   xianyu: string;
 
-  @Column()
+  @Column({ nullable: true })
   qq: string;
 
-  @Column()
+  @Column({ nullable: true })
   qqNum: string;
 
-  @Column()
+  @Column({ nullable: true })
   firstMessageTime: Date;
 
   @ManyToOne(() => Account)
