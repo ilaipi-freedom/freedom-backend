@@ -22,7 +22,9 @@ export class CustomerService {
     private readonly customerPaymentRepository: Repository<CustomerPayment>,
   ) {}
   async list() {
-    const [list, total] = await this.customeRepository.findAndCount();
+    const [list, total] = await this.customeRepository.findAndCount({
+      order: { firstMessageTime: 'desc' },
+    });
     return { list, total };
   }
 

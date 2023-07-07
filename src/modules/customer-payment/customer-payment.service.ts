@@ -14,6 +14,7 @@ export class CustomerPaymentService {
   async list(customerId: string) {
     const list = await this.customerPaymentRepository.find({
       where: { customer: { id: customerId } },
+      order: { payTime: 'desc' },
     });
     return list;
   }

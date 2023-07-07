@@ -14,6 +14,7 @@ export class CustomerOrderService {
   async list(customerId: string) {
     const list = await this.customerOrderRepository.find({
       where: { customer: { id: customerId } },
+      order: { deliveryTime: 'desc' },
     });
     return list;
   }
