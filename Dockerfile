@@ -4,13 +4,13 @@ WORKDIR /app
 
 FROM base as prod
 
-COPY package*.json .
+COPY package*.json ./
 
 RUN npm install --only=production
 
 FROM base as dev
 
-COPY package*.json .
+COPY package*.json ./
 
 RUN npm install
 
@@ -18,7 +18,7 @@ FROM base as build
 
 COPY --from=dev /app/node_modules /app/node_modules/
 
-COPY . .
+COPY . ./
 
 RUN npm run build
 
