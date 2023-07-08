@@ -1,8 +1,20 @@
 export default () => {
+  const redisPass = process.env.REDIS_PASS;
+  const redis = {
+    host: process.env.REDIS_HOST || '127.0.0.1',
+    port: process.env.REDIS_PORT || 6379,
+    db: process.env.REDIS_DB || 0,
+    ...(redisPass ? { password: redisPass } : {}),
+  };
   const env = {
     appPort: process.env.APP_PORT || 6000,
     jwt: {
       secret: process.env.APP_JWT_SECRET,
+    },
+    redis,
+    cache: {
+      ...redis,
+      ttl: 60000, // 默认缓存1分钟
     },
     mysql: {
       type: 'mysql',
