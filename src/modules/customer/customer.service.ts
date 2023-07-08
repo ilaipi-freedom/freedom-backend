@@ -15,30 +15,30 @@ import { CustomerPayment } from 'src/database/entities/customer-payment.entity';
 export class CustomerService {
   constructor(
     @InjectRepository(Customer)
-    private customeRepository: Repository<Customer>,
+    private readonly customerRepository: Repository<Customer>,
     @InjectRepository(CustomerOrder)
     private readonly customerOrderRepository: Repository<CustomerOrder>,
     @InjectRepository(CustomerPayment)
     private readonly customerPaymentRepository: Repository<CustomerPayment>,
   ) {}
   async list() {
-    const [list, total] = await this.customeRepository.findAndCount({
+    const [list, total] = await this.customerRepository.findAndCount({
       order: { firstMessageTime: 'desc' },
     });
     return { list, total };
   }
 
   async detail(id: string) {
-    const customer = await this.customeRepository.findOneBy({ id });
+    const customer = await this.customerRepository.findOneBy({ id });
     return customer;
   }
 
   async update(payload: Partial<Customer>) {
-    return await this.customeRepository.save(payload);
+    return await this.customerRepository.save(payload);
   }
 
   async create(payload: Partial<Customer>) {
-    return await this.customeRepository.save(payload);
+    return await this.customerRepository.save(payload);
   }
 
   async upload(file: Express.Multer.File) {
@@ -99,7 +99,7 @@ export class CustomerService {
       }
     }
     for (const customer of customerMap.values()) {
-      const created = await this.customeRepository.save(customer);
+      const created = await this.customerRepository.save(customer);
       if (orderMap.has(customer.xianyu)) {
         await this.customerOrderRepository.save(
           orderMap
