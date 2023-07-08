@@ -6,6 +6,15 @@ import { BaseEntity } from '../base.entity';
 @Entity()
 export class Customer extends BaseEntity {
   @Column({ nullable: true })
+  name: string;
+
+  @Column({ nullable: true })
+  email: string;
+
+  @Column({ nullable: true })
+  phone: string;
+
+  @Column({ nullable: true })
   weixin: string;
 
   @Column({ nullable: true })

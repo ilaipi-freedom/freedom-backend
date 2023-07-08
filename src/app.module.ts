@@ -8,6 +8,7 @@ import { CustomerModule } from './modules/customer/customer.module';
 import { CustomerRemarkModule } from './modules/customer-remark/customer-remark.module';
 import { CustomerOrderModule } from './modules/customer-order/customer-order.module';
 import { CustomerPaymentModule } from './modules/customer-payment/customer-payment.module';
+import { CustomerProjectModule } from './modules/customer-project/customer-project.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { CustomerPaymentModule } from './modules/customer-payment/customer-payme
     CustomerRemarkModule,
     CustomerOrderModule,
     CustomerPaymentModule,
+    CustomerProjectModule,
   ],
 })
 export class AppModule {}

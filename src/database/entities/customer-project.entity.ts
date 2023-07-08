@@ -12,6 +12,12 @@ export class CustomerProject extends BaseEntity {
   @Column({ type: 'longtext', nullable: true })
   description: string;
 
+  @Column({ nullable: true })
+  begin: Date;
+
+  @Column({ nullable: true })
+  end: Date;
+
   @Column({ type: 'longtext', nullable: true })
   content: string;
 
