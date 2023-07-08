@@ -1,15 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne } from 'typeorm';
 
 import { Customer } from './customer.entity';
 import { Account } from './account.entity';
 import { OrderFrom, OrderStatus } from 'src/types/OrderType';
 import { CustomerProject } from './customer-project.entity';
+import { BaseEntity } from '../base.entity';
 
 @Entity()
-export class CustomerOrder {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class CustomerOrder extends BaseEntity {
   @Column({ nullable: true })
   firstMessageTime: Date;
 

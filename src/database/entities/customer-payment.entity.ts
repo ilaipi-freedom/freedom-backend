@@ -1,16 +1,14 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne } from 'typeorm';
 
 import { Customer } from './customer.entity';
 import { Account } from './account.entity';
 import { CustomerOrder } from './customer-order.entity';
 import { PaymentMethod } from 'src/types/PaymentType';
 import { CustomerProject } from './customer-project.entity';
+import { BaseEntity } from '../base.entity';
 
 @Entity()
-export class CustomerPayment {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class CustomerPayment extends BaseEntity {
   @Column({
     type: 'decimal',
     precision: 10,

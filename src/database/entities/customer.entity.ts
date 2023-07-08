@@ -1,12 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne } from 'typeorm';
 
 import { Account } from './account.entity';
+import { BaseEntity } from '../base.entity';
 
 @Entity()
-export class Customer {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class Customer extends BaseEntity {
   @Column({ nullable: true })
   weixin: string;
 

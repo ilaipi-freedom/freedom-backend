@@ -1,13 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne } from 'typeorm';
 
 import { Customer } from './customer.entity';
 import { Account } from './account.entity';
+import { BaseEntity } from '../base.entity';
 
 @Entity()
-export class CustomerProject {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class CustomerProject extends BaseEntity {
   @Column()
   title: string;
 

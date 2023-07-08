@@ -5,7 +5,9 @@ import { CustomerProject } from 'src/database/entities/customer-project.entity';
 
 @Controller('customer-project')
 export class CustomerProjectController {
-  constructor(private readonly customerProjectService: CustomerProjectService) {}
+  constructor(
+    private readonly customerProjectService: CustomerProjectService,
+  ) {}
   @Get('/list')
   async list(@Query('customerId') customerId: string) {
     return this.customerProjectService.list(customerId);
