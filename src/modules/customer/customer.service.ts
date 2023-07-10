@@ -13,6 +13,7 @@ import {
 } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 
+import { formatISO } from 'src/common/date-helper';
 import { Customer } from 'src/database/entities/customer.entity';
 import { CustomerOrder } from 'src/database/entities/customer-order.entity';
 import { OrderStatus } from 'src/types/OrderType';
@@ -71,7 +72,13 @@ export class CustomerService {
 
   async detail(id: string) {
     const customer = await this.customerRepository.findOneBy({ id });
-    return customer;
+    const { firstMessageTime, ...others } = customer;
+    const row: Customer | { firstMessageTime?: string } = {
+      ...others,
+      firstMessageTime: undefined,
+    };
+    row.firstMessageTime = formatISO(firstMessageTime);
+    return row;
   }
 
   async update(payload: Partial<Customer>) {
