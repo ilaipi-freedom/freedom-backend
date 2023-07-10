@@ -61,6 +61,7 @@ export class CustomerService {
         ),
       );
     }
+    qb.orderBy({ 'customer.firstMessageTime': 'DESC' });
     qb.skip((current - 1) * pageSize);
     qb.take(pageSize);
     console.log('======sql', qb.getSql());
