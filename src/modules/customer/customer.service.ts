@@ -78,7 +78,9 @@ export class CustomerService {
         ...others,
         firstMessageTime: undefined,
       };
+      console.log('========firstMessageTime', firstMessageTime);
       row.firstMessageTime = formatISO(firstMessageTime);
+      console.log('========firstMessageTime 2', row.firstMessageTime);
       result.push(row);
     }
     return { list: result, total };
