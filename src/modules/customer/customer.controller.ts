@@ -5,6 +5,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -17,8 +18,18 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
   @Get('/list')
-  async list() {
-    return this.customerService.list();
+  async list(
+    @Query('q') q?: string,
+    @Query('firstMessageTime') firstMessageTime?: string[],
+    @Query('current') current?: number,
+    @Query('pageSize') pageSize?: number,
+  ) {
+    return this.customerService.list({
+      q,
+      firstMessageTime,
+      current,
+      pageSize,
+    });
   }
   @Get('/:id')
   async detail(@Param('id') id: string) {

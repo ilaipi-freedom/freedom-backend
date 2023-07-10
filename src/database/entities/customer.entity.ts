@@ -1,7 +1,9 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
 
 import { Account } from './account.entity';
 import { BaseEntity } from '../base.entity';
+import { CustomerOrder } from './customer-order.entity';
+import { CustomerRemark } from './customer-remark.entity';
 
 @Entity()
 export class Customer extends BaseEntity {
@@ -34,4 +36,10 @@ export class Customer extends BaseEntity {
 
   @ManyToOne(() => Account)
   account: Account;
+
+  @OneToMany(() => CustomerOrder, (order) => order.customer)
+  orders: CustomerOrder;
+
+  @OneToMany(() => CustomerRemark, (remark) => remark.customer)
+  remarks: CustomerRemark;
 }

@@ -1,9 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, LessThan, MoreThanOrEqual, Repository } from 'typeorm';
 import xlsx from 'node-xlsx';
 import { keyBy } from 'lodash';
-import { addDays, addMilliseconds, subHours, subMinutes } from 'date-fns';
+import {
+  addDays,
+  addMilliseconds,
+  format,
+  parseISO,
+  subHours,
+  subMinutes,
+} from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 
 import { Customer } from 'src/database/entities/customer.entity';
@@ -21,10 +28,43 @@ export class CustomerService {
     @InjectRepository(CustomerPayment)
     private readonly customerPaymentRepository: Repository<CustomerPayment>,
   ) {}
-  async list() {
-    const [list, total] = await this.customerRepository.findAndCount({
-      order: { firstMessageTime: 'desc' },
-    });
+  async list({ q, firstMessageTime, current, pageSize }) {
+    const qb = this.customerRepository
+      .createQueryBuilder('customer')
+      .leftJoin('customer.orders', 'order')
+      .leftJoin('customer.remarks', 'remark');
+    if (q) {
+      const reg = `%${q.toLowerCase()}%`;
+      qb.where(
+        new Brackets((qb2) =>
+          qb2
+            .where('LOWER(customer.weixin) like :reg', { reg })
+            .orWhere('LOWER(customer.weixinId) like :reg', { reg })
+            .orWhere('LOWER(customer.xianyu) like :reg', { reg })
+            .orWhere('LOWER(order.content) like :reg', { reg })
+            .orWhere('LOWER(order.detail) like :reg', { reg })
+            .orWhere('LOWER(order.extra) like :reg', { reg })
+            .orWhere('LOWER(remark.content) like :reg', { reg }),
+        ),
+      );
+    }
+    if (firstMessageTime && firstMessageTime[0] && firstMessageTime[1]) {
+      const less = parseISO(`${firstMessageTime[1]}T00:00:00+08:00`);
+      const str = format(addDays(less, 1), 'yyyy-MM-dd');
+      qb.andWhere(
+        new Brackets((qb2) =>
+          qb2
+            .where({ firstMessageTime: MoreThanOrEqual(firstMessageTime[0]) })
+            .andWhere({
+              firstMessageTime: LessThan(str),
+            }),
+        ),
+      );
+    }
+    qb.skip((current - 1) * pageSize);
+    qb.take(pageSize);
+    console.log('======sql', qb.getSql());
+    const [list, total] = await qb.getManyAndCount();
     return { list, total };
   }
 
