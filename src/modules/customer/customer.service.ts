@@ -67,7 +67,21 @@ export class CustomerService {
     qb.take(pageSize);
     console.log('======sql', qb.getSql());
     const [list, total] = await qb.getManyAndCount();
-    return { list, total };
+    type TypeOut =
+      | {
+          firstMessageTime?: string;
+        }
+      | Customer;
+    const result: TypeOut[] = [];
+    for (const { firstMessageTime, ...others } of list) {
+      const row: TypeOut = {
+        ...others,
+        firstMessageTime: undefined,
+      };
+      row.firstMessageTime = formatISO(firstMessageTime);
+      result.push(row);
+    }
+    return { list: result, total };
   }
 
   async detail(id: string) {
