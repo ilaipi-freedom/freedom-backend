@@ -56,9 +56,11 @@ export class AuthService {
 
   async validateUser(payload: AuthSessionKey): Promise<Partial<Account>> {
     const sessionKey = AuthHelper.sessionKey(payload);
-    const sesstion = await this.cacheManager.get(sessionKey);
-    if (sesstion) {
-      return JSON.parse(sesstion as string);
+    console.log('===========sessionKey 1', sessionKey);
+    const session = await this.cacheManager.get(sessionKey);
+    console.log('===========session', session);
+    if (session) {
+      return JSON.parse(session as string);
     }
     throw new UnauthorizedException('登录已失效!');
   }
