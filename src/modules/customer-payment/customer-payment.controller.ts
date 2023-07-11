@@ -22,4 +22,9 @@ export class CustomerPaymentController {
   async update(@Body() payload: CustomerPayment) {
     return this.customerPaymentService.update(payload);
   }
+
+  @Get('/sumAmountByMonth')
+  async sumAmountByMonth() {
+    return this.customerPaymentService.sumAmountByMonth();
+  }
 }

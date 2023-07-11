@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 
 import { formatISO } from 'src/common/date-helper';
 import { CustomerPayment } from 'src/database/entities/customer-payment.entity';
+import { reverse } from 'lodash';
 
 @Injectable()
 export class CustomerPaymentService {
@@ -40,5 +41,17 @@ export class CustomerPaymentService {
 
   async create(payload: Partial<CustomerPayment>) {
     return await this.customerPaymentRepository.save(payload);
+  }
+
+  async sumAmountByMonth() {
+    const qb = this.customerPaymentRepository.createQueryBuilder('payment');
+    const result = await qb
+      .select("DATE_FORMAT(payment.payTime, '%Y-%m')", 'month')
+      .addSelect('SUM(payment.amount)', 'totalAmount')
+      .groupBy('month')
+      .orderBy('month', 'DESC')
+      .limit(12)
+      .getRawMany();
+    return reverse(result);
   }
 }
