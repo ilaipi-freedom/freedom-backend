@@ -51,4 +51,9 @@ export class CustomerController {
   uploadFile(@UploadedFile() file: Express.Multer.File) {
     return this.customerService.upload(file);
   }
+
+  @Get('/statistics/groupByPeriod')
+  groupByPeriod() {
+    return this.customerService.groupByPeriod();
+  }
 }
