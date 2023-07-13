@@ -8,8 +8,8 @@ export enum OrderFrom {
 }
 
 export enum OrderStatus {
-  INIT = 0, // 在聊
-  DEAL = 10, // 接单，用户已下单、付款
-  DELIVERY = 20, // 交付，已交付用户
-  NONE = 99, // 未成单
+  INIT = '0', // 在聊
+  DEAL = '10', // 接单，用户已下单、付款
+  DELIVERY = '20', // 交付，已交付用户
+  NONE = '99', // 未成单
 }

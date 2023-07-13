@@ -56,4 +56,9 @@ export class CustomerController {
   groupByPeriod() {
     return this.customerService.groupByPeriod();
   }
+
+  @Get('/statistics/nums')
+  getStatisticsNums() {
+    return this.customerService.staticticsNums();
+  }
 }

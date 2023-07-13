@@ -103,6 +103,49 @@ export class CustomerService {
     return await this.customerRepository.save(payload);
   }
 
+  async staticticsNums() {
+    const totalCustomers = await this.customerRepository.count();
+    const { paidCustomers } = await this.customerPaymentRepository
+      .createQueryBuilder('payment')
+      .select('count(DISTINCT(customerId))', 'paidCustomers')
+      .getRawOne();
+    const totalPaid = await this.customerPaymentRepository.sum('amount');
+    const deliveryOrders = await this.customerOrderRepository.countBy({
+      status: OrderStatus.DELIVERY,
+    });
+    return { totalCustomers, paidCustomers, totalPaid, deliveryOrders };
+  }
+
+  async groupByPeriod() {
+    const qb = this.customerRepository.createQueryBuilder('customer');
+    const result = await qb
+      .select(
+        `
+          CASE
+            WHEN HOUR(customer.firstMessageTime) >= 7 AND HOUR(customer.firstMessageTime) < 11 THEN 'A'
+            WHEN HOUR(customer.firstMessageTime) >= 11 AND HOUR(customer.firstMessageTime) < 13 THEN 'B'
+            WHEN HOUR(customer.firstMessageTime) >= 13 AND HOUR(customer.firstMessageTime) < 17 THEN 'C'
+            WHEN HOUR(customer.firstMessageTime) >= 17 AND HOUR(customer.firstMessageTime) < 20 THEN 'D'
+            WHEN HOUR(customer.firstMessageTime) >= 20 AND HOUR(customer.firstMessageTime) < 23 THEN 'E'
+            ELSE 'F'
+          END AS timePeriod,
+          COUNT(*) as count
+        `,
+      )
+      .groupBy('timePeriod')
+      .orderBy('count', 'DESC')
+      .getRawMany();
+    const timePeriod = [
+      'A: 7-11',
+      'B: 11-13',
+      'C: 13-17',
+      'D: 17-20',
+      'E: 20-23',
+      'F: 23-6',
+    ];
+    return { data: result, timePeriod };
+  }
+
   async upload(file: Express.Multer.File) {
     const workSheetsFromBuffer = xlsx.parse(file.buffer, { raw: true });
     const sheets = keyBy(workSheetsFromBuffer, 'name');
@@ -227,35 +270,5 @@ export class CustomerService {
     const timeZone = 'Asia/Shanghai'; // 设置为东八区的时区
     const zonedDate = utcToZonedTime(subHours(completeDate, 8), timeZone);
     return zonedDate;
-  }
-
-  async groupByPeriod() {
-    const qb = this.customerRepository.createQueryBuilder('customer');
-    const result = await qb
-      .select(
-        `
-          CASE
-            WHEN HOUR(customer.firstMessageTime) >= 7 AND HOUR(customer.firstMessageTime) < 11 THEN 'A'
-            WHEN HOUR(customer.firstMessageTime) >= 11 AND HOUR(customer.firstMessageTime) < 13 THEN 'B'
-            WHEN HOUR(customer.firstMessageTime) >= 13 AND HOUR(customer.firstMessageTime) < 17 THEN 'C'
-            WHEN HOUR(customer.firstMessageTime) >= 17 AND HOUR(customer.firstMessageTime) < 20 THEN 'D'
-            WHEN HOUR(customer.firstMessageTime) >= 20 AND HOUR(customer.firstMessageTime) < 23 THEN 'E'
-            ELSE 'F'
-          END AS timePeriod,
-          COUNT(*) as count
-        `,
-      )
-      .groupBy('timePeriod')
-      .orderBy('count', 'DESC')
-      .getRawMany();
-    const timePeriod = [
-      'A: 7-11',
-      'B: 11-13',
-      'C: 13-17',
-      'D: 17-20',
-      'E: 20-23',
-      'F: 23-6',
-    ];
-    return { data: result, timePeriod };
   }
 }
