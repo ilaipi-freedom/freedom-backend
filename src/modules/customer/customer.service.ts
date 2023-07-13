@@ -113,7 +113,12 @@ export class CustomerService {
     const deliveryOrders = await this.customerOrderRepository.countBy({
       status: OrderStatus.DELIVERY,
     });
-    return { totalCustomers, paidCustomers, totalPaid, deliveryOrders };
+    return {
+      totalCustomers,
+      paidCustomers: Number(paidCustomers),
+      totalPaid,
+      deliveryOrders,
+    };
   }
 
   async groupByPeriod() {
