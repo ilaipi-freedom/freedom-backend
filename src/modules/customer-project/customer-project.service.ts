@@ -15,6 +15,7 @@ export class CustomerProjectService {
   async list(customerId: string) {
     const list = await this.customerProjectRepository.find({
       where: { customer: { id: customerId } },
+      order: { createdAt: 'desc' },
     });
     type TypeOut =
       | {

@@ -14,6 +14,7 @@ export class CustomerRemarkService {
   async list(customerId: string) {
     const list = await this.customerRemarkRepository.find({
       where: { customer: { id: customerId } },
+      order: { createdAt: 'desc' },
     });
     return list;
   }
