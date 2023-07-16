@@ -151,6 +151,38 @@ export class CustomerService {
     return { data: result, timePeriod };
   }
 
+  async mostPaidAmount() {
+    const qb = this.customerPaymentRepository.createQueryBuilder('payment');
+    const result = await qb
+      .select('payment.customerId, SUM(payment.amount)', 'totalAmount')
+      .addSelect('customer.weixin', 'weixin')
+      .addSelect('customer.weixinId', 'weixinId')
+      .addSelect('customer.xianyu', 'xianyu')
+      .innerJoin(Customer, 'customer', 'payment.customerId = customer.id')
+      .groupBy('payment.customerId')
+      .orderBy('totalAmount', 'DESC')
+      .limit(5)
+      .getRawMany();
+    const totalPaid = await this.customerPaymentRepository.sum('amount');
+    return { top5: result, totalPaid };
+  }
+
+  async mostPaidTimes() {
+    const qb = this.customerPaymentRepository.createQueryBuilder('payment');
+    const result = await qb
+      .select('payment.customerId, COUNT(*)', 'paymentCount')
+      .addSelect('customer.weixin', 'weixin')
+      .addSelect('customer.weixinId', 'weixinId')
+      .addSelect('customer.xianyu', 'xianyu')
+      .innerJoin(Customer, 'customer', 'payment.customerId = customer.id')
+      .groupBy('payment.customerId')
+      .orderBy('paymentCount', 'DESC')
+      .limit(5)
+      .getRawMany();
+    const totalPaid = await this.customerPaymentRepository.count();
+    return { top5: result, totalPaid };
+  }
+
   async upload(file: Express.Multer.File) {
     const workSheetsFromBuffer = xlsx.parse(file.buffer, { raw: true });
     const sheets = keyBy(workSheetsFromBuffer, 'name');

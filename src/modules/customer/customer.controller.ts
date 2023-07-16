@@ -61,4 +61,14 @@ export class CustomerController {
   getStatisticsNums() {
     return this.customerService.staticticsNums();
   }
+
+  @Get('/statistics/mostPaidAmount')
+  mostPaidAmount() {
+    return this.customerService.mostPaidAmount();
+  }
+
+  @Get('/statistics/mostPaidTimes')
+  mostPaidTimes() {
+    return this.customerService.mostPaidTimes();
+  }
 }
