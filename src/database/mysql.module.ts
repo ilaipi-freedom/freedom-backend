@@ -26,7 +26,7 @@ const entities = [
       useFactory: (configService: ConfigService) => ({
         ...configService.get('env.mysql'),
         autoLoadEntities: true,
-        synchronize: true,
+        // synchronize: true,
       }),
       inject: [ConfigService],
     }),

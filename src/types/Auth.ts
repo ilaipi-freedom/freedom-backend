@@ -4,7 +4,7 @@ export class AuthSessionKey {
   id: string;
 }
 
-export class AdminAuthSession {
+export class AuthSession {
   id: string;
   username: string;
   token: string;
