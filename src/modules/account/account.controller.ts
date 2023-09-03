@@ -15,7 +15,7 @@ import { AvailableStatus, Prisma } from '@prisma/client';
 import { AccountService } from './account.service';
 import { ResetPasswordDto } from './dto';
 import { CurrentUser } from 'src/common/current-user';
-import { AuthSession } from 'src/types/auth';
+import { AuthSession } from 'src/types/Auth';
 import { AuthHelper } from 'src/common/auth-helper';
 
 @Controller('account')
