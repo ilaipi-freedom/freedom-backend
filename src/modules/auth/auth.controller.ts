@@ -4,7 +4,7 @@ import { LoginDto } from './dto';
 import { AuthService } from './auth.service';
 import { Public } from 'src/common/public';
 import { CurrentUser } from 'src/common/current-user';
-import { AdminAuthSession } from 'src/types/Auth';
+import { AuthSession } from 'src/types/Auth';
 
 @Controller('auth')
 export class AuthController {
@@ -17,7 +17,7 @@ export class AuthController {
   }
 
   @Post('logout')
-  async logout(@CurrentUser() payload: AdminAuthSession) {
+  async logout(@CurrentUser() payload: AuthSession) {
     return this.authService.signOut(payload);
   }
 }

@@ -14,10 +14,15 @@ import { AuthModule } from './modules/auth/auth.module';
 import { AccountModule } from './modules/account/account.module';
 import { JwtAuthGuard } from './modules/auth/auth.guard';
 import { CacheModule } from './modules/cache/cache.module';
+import { PrismaModule } from './database/prisma/prisma.module';
+import { SysDictModule } from './modules/sys-dict/sys-dict.module';
+import { SysDictDataModule } from './modules/sys-dict-data/sys-dict-data.module';
+import { RoleModule } from './modules/role/role.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [config] }),
+    PrismaModule,
     CacheModule,
     MysqlModule,
     CustomerModule,
@@ -27,6 +32,9 @@ import { CacheModule } from './modules/cache/cache.module';
     CustomerProjectModule,
     AuthModule,
     AccountModule,
+    RoleModule,
+    SysDictModule,
+    SysDictDataModule,
   ],
   providers: [
     {

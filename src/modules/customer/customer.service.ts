@@ -18,6 +18,8 @@ import { Customer } from 'src/database/entities/customer.entity';
 import { CustomerOrder } from 'src/database/entities/customer-order.entity';
 import { OrderStatus } from 'src/types/OrderType';
 import { CustomerPayment } from 'src/database/entities/customer-payment.entity';
+import { PrismaService } from 'src/database/prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class CustomerService {
@@ -28,51 +30,37 @@ export class CustomerService {
     private readonly customerOrderRepository: Repository<CustomerOrder>,
     @InjectRepository(CustomerPayment)
     private readonly customerPaymentRepository: Repository<CustomerPayment>,
+    private readonly prisma: PrismaService,
   ) {}
   async list({ q, firstMessageTime, current, pageSize }) {
-    const qb = this.customerRepository
-      .createQueryBuilder('customer')
-      .leftJoin('customer.orders', 'order')
-      .leftJoin('customer.remarks', 'remark');
+    const where: Prisma.CustomerWhereInput = {};
     if (q) {
-      const reg = `%${q.toLowerCase()}%`;
-      qb.where(
-        new Brackets((qb2) =>
-          qb2
-            .where('LOWER(customer.weixin) like :reg', { reg })
-            .orWhere('LOWER(customer.weixinId) like :reg', { reg })
-            .orWhere('LOWER(customer.xianyu) like :reg', { reg })
-            .orWhere('LOWER(order.content) like :reg', { reg })
-            .orWhere('LOWER(order.detail) like :reg', { reg })
-            .orWhere('LOWER(order.extra) like :reg', { reg })
-            .orWhere('LOWER(remark.content) like :reg', { reg }),
-        ),
-      );
+      where.OR = [
+        { name: { contains: q } },
+        { weixin: { contains: q } },
+        { weixinId: { contains: q } },
+        { xianyu: { contains: q } },
+        { qq: { contains: q } },
+      ];
     }
     if (firstMessageTime && firstMessageTime[0] && firstMessageTime[1]) {
-      const less = parseISO(`${firstMessageTime[1]}T00:00:00+08:00`);
-      const str = format(addDays(less, 1), 'yyyy-MM-dd');
-      qb.andWhere(
-        new Brackets((qb2) =>
-          qb2
-            .where({ firstMessageTime: MoreThanOrEqual(firstMessageTime[0]) })
-            .andWhere({
-              firstMessageTime: LessThan(str),
-            }),
-        ),
-      );
+      where.AND = [
+        { firstMessageTime: { gte: firstMessageTime[0] } },
+        { firstMessageTime: { lt: firstMessageTime[1] } },
+      ];
     }
-    qb.orderBy({ 'customer.firstMessageTime': 'DESC' });
-    qb.skip((current - 1) * pageSize);
-    qb.take(pageSize);
-    console.log('======sql', qb.getSql());
-    const [list, total] = await qb.getManyAndCount();
     type TypeOut =
       | {
           firstMessageTime?: string;
         }
       | Customer;
     const result: TypeOut[] = [];
+    const total = await this.prisma.customer.count({ where });
+    const list = await this.prisma.customer.findMany({
+      where,
+      take: Number(pageSize),
+      skip: (Number(current) - 1) * Number(pageSize),
+    });
     for (const { firstMessageTime, ...others } of list) {
       const row: TypeOut = {
         ...others,

@@ -1,4 +1,4 @@
-import { AuthSessionKey } from '../types/Auth';
+import { AuthSession, AuthSessionKey } from '../types/Auth';
 
 export class AuthHelper {
   /**
@@ -10,5 +10,9 @@ export class AuthHelper {
   static sessionKey(payload: AuthSessionKey) {
     const keys = [payload.type, payload.key, payload.id.toString()];
     return keys.join('::');
+  }
+
+  static isAdmin(user: AuthSession) {
+    return user.role === 'admin';
   }
 }

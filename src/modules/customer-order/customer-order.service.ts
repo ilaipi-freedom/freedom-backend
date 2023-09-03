@@ -1,21 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Prisma } from '@prisma/client';
 
 import { formatISO } from 'src/common/date-helper';
 import { CustomerOrder } from 'src/database/entities/customer-order.entity';
+import { PrismaService } from 'src/database/prisma/prisma.service';
 
 @Injectable()
 export class CustomerOrderService {
   constructor(
     @InjectRepository(CustomerOrder)
     private readonly customerOrderRepository: Repository<CustomerOrder>,
+    private readonly prisma: PrismaService,
   ) {}
 
   async list(customerId: string) {
-    const list = await this.customerOrderRepository.find({
-      where: { customer: { id: customerId } },
-      order: { deliveryTime: 'desc' },
+    const where: Prisma.CustomerOrderWhereInput = {
+      customerId,
+    };
+    const list = await this.prisma.customerOrder.findMany({
+      where,
+      orderBy: { deliveryTime: 'desc' },
     });
     type TypeOut =
       | {
