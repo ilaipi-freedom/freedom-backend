@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post, Put, Query } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 import { CustomerRemarkService } from './customer-remark.service';
 import { CustomerRemark } from 'src/database/entities/customer-remark.entity';
@@ -12,7 +13,7 @@ export class CustomerRemarkController {
   }
 
   @Post()
-  async create(@Body() payload: CustomerRemark) {
+  async create(@Body() payload: Prisma.CustomerRemarkCreateInput) {
     return this.customerRemarkService.create(payload);
   }
 

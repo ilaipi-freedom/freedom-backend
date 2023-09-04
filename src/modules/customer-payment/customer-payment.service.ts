@@ -42,11 +42,14 @@ export class CustomerPaymentService {
   }
 
   async update(payload: Partial<CustomerPayment>) {
-    return await this.customerPaymentRepository.save(payload);
+    return this.prisma.customerPayment.update({
+      where: { id: payload.id },
+      data: payload,
+    });
   }
 
-  async create(payload: Partial<CustomerPayment>) {
-    return await this.customerPaymentRepository.save(payload);
+  async create(data: Prisma.CustomerPaymentCreateInput) {
+    return this.prisma.customerPayment.create({ data });
   }
 
   async sumAmountByMonth() {

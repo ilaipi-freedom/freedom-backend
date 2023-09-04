@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Put, Query } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
-import { CustomerOrder } from 'src/database/entities/customer-order.entity';
 import { CustomerOrderService } from './customer-order.service';
 
 @Controller('customer-order')
@@ -12,12 +12,12 @@ export class CustomerOrderController {
   }
 
   @Post()
-  async create(@Body() payload: CustomerOrder) {
+  async create(@Body() payload: Prisma.CustomerOrderCreateInput) {
     return this.customerOrderService.create(payload);
   }
 
   @Put('/:id')
-  async update(@Body() payload: CustomerOrder) {
+  async update(@Body() payload: Prisma.CustomerOrderUpdateInput) {
     return this.customerOrderService.update(payload);
   }
 }

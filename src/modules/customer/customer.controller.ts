@@ -9,10 +9,11 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Prisma } from '@prisma/client';
 
 import { CustomerService } from './customer.service';
 import { Customer } from 'src/database/entities/customer.entity';
-import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('customer')
 export class CustomerController {
@@ -37,7 +38,7 @@ export class CustomerController {
   }
 
   @Post()
-  async create(@Body() payload: Customer) {
+  async create(@Body() payload: Prisma.CustomerCreateInput) {
     return this.customerService.create(payload);
   }
 

@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post, Put, Query } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 import { CustomerPayment } from 'src/database/entities/customer-payment.entity';
 import { CustomerPaymentService } from './customer-payment.service';
@@ -14,7 +15,7 @@ export class CustomerPaymentController {
   }
 
   @Post()
-  async create(@Body() payload: CustomerPayment) {
+  async create(@Body() payload: Prisma.CustomerPaymentCreateInput) {
     return this.customerPaymentService.create(payload);
   }
 

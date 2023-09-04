@@ -1,17 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, LessThan, MoreThanOrEqual, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import xlsx from 'node-xlsx';
 import { keyBy } from 'lodash';
-import {
-  addDays,
-  addMilliseconds,
-  format,
-  parseISO,
-  subHours,
-  subMinutes,
-} from 'date-fns';
+import { addDays, addMilliseconds, subHours, subMinutes } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
+import { Prisma } from '@prisma/client';
 
 import { formatISO } from 'src/common/date-helper';
 import { Customer } from 'src/database/entities/customer.entity';
@@ -19,7 +13,6 @@ import { CustomerOrder } from 'src/database/entities/customer-order.entity';
 import { OrderStatus } from 'src/types/OrderType';
 import { CustomerPayment } from 'src/database/entities/customer-payment.entity';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class CustomerService {
@@ -85,11 +78,14 @@ export class CustomerService {
   }
 
   async update(payload: Partial<Customer>) {
-    return await this.customerRepository.save(payload);
+    return this.prisma.customer.update({
+      where: { id: payload.id },
+      data: payload,
+    });
   }
 
-  async create(payload: Partial<Customer>) {
-    return await this.customerRepository.save(payload);
+  async create(data: Prisma.CustomerCreateInput) {
+    return this.prisma.customer.create({ data });
   }
 
   async staticticsNums() {

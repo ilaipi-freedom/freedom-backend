@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { Prisma } from '@prisma/client';
 
 import { CustomerRemark } from 'src/database/entities/customer-remark.entity';
@@ -8,11 +6,7 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 
 @Injectable()
 export class CustomerRemarkService {
-  constructor(
-    @InjectRepository(CustomerRemark)
-    private readonly customerRemarkRepository: Repository<CustomerRemark>,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async list(customerId: string) {
     const where: Prisma.CustomerRemarkWhereInput = {
@@ -26,10 +20,13 @@ export class CustomerRemarkService {
   }
 
   async update(payload: Partial<CustomerRemark>) {
-    return await this.customerRemarkRepository.save(payload);
+    return this.prisma.customerRemark.update({
+      where: { id: payload.id },
+      data: payload,
+    });
   }
 
-  async create(payload: Partial<CustomerRemark>) {
-    return await this.customerRemarkRepository.save(payload);
+  async create(data: Prisma.CustomerRemarkCreateInput) {
+    return this.prisma.customerRemark.create({ data });
   }
 }

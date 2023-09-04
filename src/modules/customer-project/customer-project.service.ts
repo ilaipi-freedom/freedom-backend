@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { Prisma } from '@prisma/client';
 
 import { formatISO } from 'src/common/date-helper';
@@ -9,11 +7,7 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 
 @Injectable()
 export class CustomerProjectService {
-  constructor(
-    @InjectRepository(CustomerProject)
-    private readonly customerProjectRepository: Repository<CustomerProject>,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async list(customerId: string) {
     const where: Prisma.CustomerProjectWhereInput = {
@@ -44,10 +38,13 @@ export class CustomerProjectService {
   }
 
   async update(payload: Partial<CustomerProject>) {
-    return await this.customerProjectRepository.save(payload);
+    return this.prisma.customerProject.update({
+      where: { id: payload.id },
+      data: payload,
+    });
   }
 
-  async create(payload: Partial<CustomerProject>) {
-    return await this.customerProjectRepository.save(payload);
+  async create(data: Prisma.CustomerProjectCreateInput) {
+    return this.prisma.customerProject.create({ data });
   }
 }

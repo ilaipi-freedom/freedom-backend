@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post, Put, Query } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 import { CustomerProjectService } from './customer-project.service';
 import { CustomerProject } from 'src/database/entities/customer-project.entity';
@@ -14,7 +15,7 @@ export class CustomerProjectController {
   }
 
   @Post()
-  async create(@Body() payload: CustomerProject) {
+  async create(@Body() payload: Prisma.CustomerProjectCreateInput) {
     return this.customerProjectService.create(payload);
   }
 
