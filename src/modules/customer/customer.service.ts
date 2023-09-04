@@ -58,6 +58,7 @@ export class CustomerService {
     const total = await this.prisma.customer.count({ where });
     const list = await this.prisma.customer.findMany({
       where,
+      orderBy: { firstMessageTime: 'desc' },
       take: Number(pageSize),
       skip: (Number(current) - 1) * Number(pageSize),
     });
