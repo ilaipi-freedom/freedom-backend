@@ -14,6 +14,8 @@ import { Prisma } from '@prisma/client';
 
 import { CustomerService } from './customer.service';
 import { Customer } from 'src/database/entities/customer.entity';
+import { CurrentUser } from 'src/common/current-user';
+import { AuthSession } from 'src/types/Auth';
 
 @Controller('customer')
 export class CustomerController {
@@ -38,8 +40,11 @@ export class CustomerController {
   }
 
   @Post()
-  async create(@Body() payload: Prisma.CustomerCreateInput) {
-    return this.customerService.create(payload);
+  async create(
+    @CurrentUser() user: AuthSession,
+    @Body() payload: Prisma.CustomerCreateInput,
+  ) {
+    return this.customerService.create(user, payload);
   }
 
   @Put('/:id')

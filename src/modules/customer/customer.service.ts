@@ -13,6 +13,7 @@ import { CustomerOrder } from 'src/database/entities/customer-order.entity';
 import { OrderStatus } from 'src/types/OrderType';
 import { CustomerPayment } from 'src/database/entities/customer-payment.entity';
 import { PrismaService } from 'src/database/prisma/prisma.service';
+import { AuthSession } from 'src/types/Auth';
 
 @Injectable()
 export class CustomerService {
@@ -84,8 +85,10 @@ export class CustomerService {
     });
   }
 
-  async create(data: Prisma.CustomerCreateInput) {
-    return this.prisma.customer.create({ data });
+  async create(user: AuthSession, data: Prisma.CustomerCreateInput) {
+    return this.prisma.customer.create({
+      data: { ...data, accountId: user.id },
+    });
   }
 
   async staticticsNums() {
