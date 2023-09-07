@@ -4,10 +4,10 @@ import { Repository } from 'typeorm';
 import xlsx from 'node-xlsx';
 import { keyBy } from 'lodash';
 import { addDays, addMilliseconds, subHours, subMinutes } from 'date-fns';
-import { utcToZonedTime } from 'date-fns-tz';
+import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
 import { Prisma } from '@prisma/client';
 
-import { formatISO } from 'src/common/date-helper';
+import { formatISO, utc } from 'src/common/date-helper';
 import { Customer } from 'src/database/entities/customer.entity';
 import { CustomerOrder } from 'src/database/entities/customer-order.entity';
 import { OrderStatus } from 'src/types/OrderType';
@@ -87,7 +87,11 @@ export class CustomerService {
 
   async create(user: AuthSession, data: Prisma.CustomerCreateInput) {
     return this.prisma.customer.create({
-      data: { ...data, accountId: user.id },
+      data: {
+        ...data,
+        accountId: user.id,
+        firstMessageTime: utc(data.firstMessageTime as string),
+      },
     });
   }
 
