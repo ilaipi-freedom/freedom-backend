@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { unset } from 'lodash';
 
-import { formatISO } from 'src/common/date-helper';
+import { formatISO, utc } from 'src/common/date-helper';
 import { CustomerOrder } from 'src/database/entities/customer-order.entity';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 
@@ -31,6 +32,9 @@ export class CustomerOrderService {
       firstMessageTime,
       ...others
     } of list) {
+      unset(others, 'createdAt');
+      unset(others, 'updatedAt');
+      unset(others, 'accountId');
       const row: TypeOut = {
         ...others,
         orderTime: undefined,
@@ -48,11 +52,25 @@ export class CustomerOrderService {
   async update(payload: Prisma.CustomerOrderUpdateInput) {
     return this.prisma.customerOrder.update({
       where: { id: payload.id as string },
-      data: payload,
+      data: {
+        ...payload,
+        status: Number(payload.status),
+        firstMessageTime: utc(payload.firstMessageTime as string),
+        orderTime: utc(payload.orderTime as string),
+        deliveryTime: utc(payload.deliveryTime as string),
+      },
     });
   }
 
   async create(data: Prisma.CustomerOrderCreateInput) {
-    return this.prisma.customerOrder.create({ data });
+    return this.prisma.customerOrder.create({
+      data: {
+        ...data,
+        status: Number(data.status),
+        firstMessageTime: utc(data.firstMessageTime as string),
+        orderTime: utc(data.orderTime as string),
+        deliveryTime: utc(data.deliveryTime as string),
+      },
+    });
   }
 }

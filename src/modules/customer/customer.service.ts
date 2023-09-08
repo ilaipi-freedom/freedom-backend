@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import xlsx from 'node-xlsx';
 import { keyBy } from 'lodash';
 import { addDays, addMilliseconds, subHours, subMinutes } from 'date-fns';
-import { utcToZonedTime, zonedTimeToUtc } from 'date-fns-tz';
+import { utcToZonedTime } from 'date-fns-tz';
 import { Prisma } from '@prisma/client';
 
 import { formatISO, utc } from 'src/common/date-helper';

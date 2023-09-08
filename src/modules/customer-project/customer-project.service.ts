@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
-import { formatISO } from 'src/common/date-helper';
+import { formatISO, utc } from 'src/common/date-helper';
 import { CustomerProject } from 'src/database/entities/customer-project.entity';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 
@@ -37,14 +37,24 @@ export class CustomerProjectService {
     return list;
   }
 
-  async update(payload: Partial<CustomerProject>) {
+  async update(payload: Prisma.CustomerProjectUpdateInput) {
     return this.prisma.customerProject.update({
-      where: { id: payload.id },
-      data: payload,
+      where: { id: payload.id as string },
+      data: {
+        ...payload,
+        begin: utc(payload.begin as string),
+        end: utc(payload.end as string),
+      },
     });
   }
 
   async create(data: Prisma.CustomerProjectCreateInput) {
-    return this.prisma.customerProject.create({ data });
+    return this.prisma.customerProject.create({
+      data: {
+        ...data,
+        begin: utc(data.begin as string),
+        end: utc(data.end as string),
+      },
+    });
   }
 }

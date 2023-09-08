@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { reverse } from 'lodash';
 import { Prisma } from '@prisma/client';
 
-import { formatISO } from 'src/common/date-helper';
+import { formatISO, utc } from 'src/common/date-helper';
 import { CustomerPayment } from 'src/database/entities/customer-payment.entity';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 
@@ -41,15 +41,23 @@ export class CustomerPaymentService {
     return list;
   }
 
-  async update(payload: Partial<CustomerPayment>) {
+  async update(payload: Prisma.CustomerPaymentUpdateInput) {
     return this.prisma.customerPayment.update({
-      where: { id: payload.id },
-      data: payload,
+      where: { id: payload.id as string },
+      data: {
+        ...payload,
+        payTime: utc(payload.payTime as string),
+      },
     });
   }
 
   async create(data: Prisma.CustomerPaymentCreateInput) {
-    return this.prisma.customerPayment.create({ data });
+    return this.prisma.customerPayment.create({
+      data: {
+        ...data,
+        payTime: utc(data.payTime as string),
+      },
+    });
   }
 
   async sumAmountByMonth() {

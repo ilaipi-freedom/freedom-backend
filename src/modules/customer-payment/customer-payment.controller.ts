@@ -1,7 +1,6 @@
 import { Body, Controller, Get, Post, Put, Query } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
-import { CustomerPayment } from 'src/database/entities/customer-payment.entity';
 import { CustomerPaymentService } from './customer-payment.service';
 
 @Controller('customer-payment')
@@ -20,7 +19,7 @@ export class CustomerPaymentController {
   }
 
   @Put('/:id')
-  async update(@Body() payload: CustomerPayment) {
+  async update(@Body() payload: Prisma.CustomerPaymentUpdateInput) {
     return this.customerPaymentService.update(payload);
   }
 
