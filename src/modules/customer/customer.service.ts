@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import xlsx from 'node-xlsx';
-import { keyBy } from 'lodash';
+import { keyBy, unset } from 'lodash';
 import { addDays, addMilliseconds, subHours, subMinutes } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
 import { Prisma } from '@prisma/client';
@@ -68,8 +68,10 @@ export class CustomerService {
   }
 
   async detail(id: string) {
-    const customer = await this.customerRepository.findOneBy({ id });
+    const customer = await this.prisma.customer.findUnique({ where: { id } });
     const { firstMessageTime, ...others } = customer;
+    unset(others, 'createdAt');
+    unset(others, 'updatedAt');
     const row: Customer | { firstMessageTime?: string } = {
       ...others,
       firstMessageTime: undefined,
@@ -78,10 +80,13 @@ export class CustomerService {
     return row;
   }
 
-  async update(payload: Partial<Customer>) {
+  async update(payload: Prisma.CustomerUpdateInput) {
     return this.prisma.customer.update({
-      where: { id: payload.id },
-      data: payload,
+      where: { id: payload.id as string },
+      data: {
+        ...payload,
+        firstMessageTime: utc(payload.firstMessageTime as string),
+      },
     });
   }
 

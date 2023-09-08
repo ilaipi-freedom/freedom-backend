@@ -13,7 +13,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Prisma } from '@prisma/client';
 
 import { CustomerService } from './customer.service';
-import { Customer } from 'src/database/entities/customer.entity';
 import { CurrentUser } from 'src/common/current-user';
 import { AuthSession } from 'src/types/Auth';
 
@@ -48,7 +47,7 @@ export class CustomerController {
   }
 
   @Put('/:id')
-  async update(@Body() payload: Customer) {
+  async update(@Body() payload: Prisma.CustomerUpdateInput) {
     return this.customerService.update(payload);
   }
 
