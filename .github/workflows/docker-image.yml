@@ -35,3 +35,29 @@ jobs:
         context: .
         push: true
         tags: ${{ steps.define-image-tag.outputs.IMAGE_TAG_NAME}},${{ secrets.DOCKER_HUB_USERNAME }}/${{ vars.DOCKER_IMAGE_NAME }}:latest
+
+    -
+      name: Tailscale
+      uses: tailscale/github-action@v2
+      with:
+        oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+        oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+        tags: tag:ci
+
+    - name: executing remote ssh commands using ssh key
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: 192.168.5.202
+        username: ${{ secrets.SSH_USERNAME_202 }}
+        key: ${{ secrets.SSH_KEY_202 }}
+        port: ${{ secrets.SSH_PORT_202 }}
+        script: |
+          cd /home/billy/freedom
+          docker pull ilaipi/freedom-backend
+
+          docker rm -f freedom_backend
+
+          docker run -dit --link mysql8 --link redis7 \
+            --name freedom_backend --env-file prod.env \
+            -p 39890:6000 --restart always \
+            ilaipi/freedom-backend
