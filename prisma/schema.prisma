@@ -20,13 +20,18 @@ model Role {
 }
 
 model Account {
-  id        String   @id @default(cuid())
-  username  String   @unique @db.VarChar(255)
-  password  String   @db.VarChar(255)
-  roleId    String
-  createdAt DateTime @default(now()) @db.DateTime(6)
-  updatedAt DateTime @updatedAt
-  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  id              String            @id @default(cuid())
+  username        String            @unique @db.VarChar(255)
+  password        String            @db.VarChar(255)
+  roleId          String
+  createdAt       DateTime          @default(now()) @db.DateTime(6)
+  updatedAt       DateTime          @updatedAt
+  role            Role              @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  Customer        Customer[]
+  CustomerOrder   CustomerOrder[]
+  CustomerPayment CustomerPayment[]
+  CustomerProject CustomerProject[]
+  CustomerRemark  CustomerRemark[]
 
   @@map("account")
 }
@@ -46,6 +51,11 @@ model Customer {
   firstMessageTime DateTime?         @db.DateTime(0)
   accountId        String
   CustomerPayment  CustomerPayment[]
+
+  account         Account?          @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  CustomerOrder   CustomerOrder[]
+  CustomerProject CustomerProject[]
+  CustomerRemark  CustomerRemark[]
 
   @@map("customer")
 }
@@ -69,23 +79,30 @@ model CustomerOrder {
   accountId        String?
   projectId        String?
 
+  customer Customer?        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  account  Account?         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  project  CustomerProject? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
   @@map("customer_order")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model CustomerPayment {
-  id         String    @id @default(cuid())
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  amount     Decimal   @db.Decimal(10, 2)
-  payTime    DateTime  @db.DateTime(0)
-  payMethod  String    @default("闲鱼")
-  extra      String?   @db.Text
-  orderId    String?   @db.VarChar(36)
-  customerId String?   @db.VarChar(36)
-  accountId  String?   @db.VarChar(36)
-  projectId  String?   @db.VarChar(36)
-  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  amount     Decimal  @db.Decimal(10, 2)
+  payTime    DateTime @db.DateTime(0)
+  payMethod  String   @default("闲鱼")
+  extra      String?  @db.Text
+  orderId    String?  @db.VarChar(36)
+  customerId String?  @db.VarChar(36)
+  accountId  String?  @db.VarChar(36)
+  projectId  String?  @db.VarChar(36)
+
+  customer Customer?        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  account  Account?         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  project  CustomerProject? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("customer_payment")
 }
@@ -103,6 +120,12 @@ model CustomerProject {
   customerId  String?   @db.VarChar(36)
   accountId   String?   @db.VarChar(36)
 
+  customer        Customer?         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  account         Account?          @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  CustomerOrder   CustomerOrder[]
+  CustomerPayment CustomerPayment[]
+  CustomerRemark  CustomerRemark[]
+
   @@map("customer_project")
 }
 
@@ -115,6 +138,10 @@ model CustomerRemark {
   customerId String?  @db.VarChar(36)
   accountId  String?  @db.VarChar(36)
   projectId  String?  @db.VarChar(36)
+
+  customer Customer?        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  account  Account?         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  project  CustomerProject? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("customer_remark")
 }

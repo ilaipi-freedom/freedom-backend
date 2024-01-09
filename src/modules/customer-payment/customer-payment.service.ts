@@ -20,6 +20,7 @@ export class CustomerPaymentService {
   ) {
     const dateWhere = dateWhereAnd(date, 'payTime');
     const where: Prisma.CustomerPaymentWhereInput = {
+      ...(customerId ? { customerId } : {}),
       ...(dateWhere ? { AND: dateWhere } : {}),
     };
     if (q) {
