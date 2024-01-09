@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { keyBy, map, uniq } from 'lodash';
 
 import { PrismaService } from '../../database/prisma/prisma.service';
 
@@ -43,7 +44,18 @@ export class SysDictDataService {
           }
         : {}),
     });
-    return { total, list };
+    const sysDictTypes = uniq(map(list, 'type'));
+    const sysDict = await this.prisma.sysDict.findMany({
+      where: { type: { in: sysDictTypes } },
+    });
+    const sysDictMap = keyBy(sysDict, 'type');
+    return {
+      total,
+      list: list.map((row: any) => ({
+        ...row,
+        sysDict: sysDictMap[row.type],
+      })),
+    };
   }
 
   async getById(id: number) {

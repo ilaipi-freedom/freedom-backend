@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post, Put, Query } from '@nestjs/common';
+import { ApiQuery } from '@nestjs/swagger';
 import { Prisma } from '@prisma/client';
 
 import { CustomerPaymentService } from './customer-payment.service';
@@ -8,9 +9,54 @@ export class CustomerPaymentController {
   constructor(
     private readonly customerPaymentService: CustomerPaymentService,
   ) {}
+
   @Get('/list')
-  async list(@Query('customerId') customerId: string) {
-    return this.customerPaymentService.list(customerId);
+  @ApiQuery({
+    name: 'customerId',
+  })
+  @ApiQuery({
+    name: 'q',
+  })
+  @ApiQuery({
+    name: 'date',
+    required: false,
+    type: [String],
+    description: '支付时间',
+  })
+  @ApiQuery({
+    name: 'isAll',
+    required: false,
+    type: Boolean,
+    description: '是否获取全部',
+  })
+  @ApiQuery({
+    name: 'current',
+    required: false,
+    type: Number,
+    description: '当前页，从1开始',
+  })
+  @ApiQuery({
+    name: 'pageSize',
+    required: false,
+    type: Number,
+    description: '每页数量',
+  })
+  async list(
+    @Query('q') q: string,
+    @Query('customerId') customerId: string,
+    @Query('date') date: string[],
+    @Query('isAll') isAll: boolean,
+    @Query('current') page: number,
+    @Query('pageSize') limit: number,
+  ) {
+    return this.customerPaymentService.list(
+      q,
+      customerId,
+      date,
+      isAll,
+      page,
+      limit,
+    );
   }
 
   @Post()

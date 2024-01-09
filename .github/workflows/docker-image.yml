@@ -14,18 +14,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: get-npm-version
-      id: package-version
-      uses: martinbeentjes/npm-get-version-action@v1.3.1
-
-    - name: define-tag
-      id: define-image-tag
-      run:
-        echo "IMAGE_TAG_NAME=${{ secrets.DOCKER_HUB_USERNAME }}/${{ vars.DOCKER_IMAGE_NAME }}:${{ steps.package-version.outputs.current-version}}-$(date +%s)" >> $GITHUB_OUTPUT
-
-    - name: Login to Docker Hub
-      uses: docker/login-action@v2
+    - name: Login to Huawei Docker Hub
+      uses: docker/login-action@v3
       with:
+        registry: ${{ secrets.DOCKER_REGISTRY }}
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
@@ -34,7 +26,7 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ steps.define-image-tag.outputs.IMAGE_TAG_NAME}},${{ secrets.DOCKER_HUB_USERNAME }}/${{ vars.DOCKER_IMAGE_NAME }}:latest
+        tags: ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.DOCKER_HUB_SPACE }}/${{ vars.DOCKER_IMAGE_NAME }}:latest
 
     -
       name: Tailscale
@@ -47,17 +39,16 @@ jobs:
     - name: executing remote ssh commands using ssh key
       uses: appleboy/ssh-action@v1.0.0
       with:
-        host: 192.168.5.202
+        host: ${{ secrets.SSH_HOST_202 }}
         username: ${{ secrets.SSH_USERNAME_202 }}
         key: ${{ secrets.SSH_KEY_202 }}
         port: ${{ secrets.SSH_PORT_202 }}
         script: |
-          cd /home/billy/freedom
-          docker pull ilaipi/freedom-backend
+          docker pull ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.DOCKER_HUB_SPACE }}/${{ vars.DOCKER_IMAGE_NAME }}
 
           docker rm -f freedom_backend
 
           docker run -dit --link mysql8 --link redis7 \
-            --name freedom_backend --env-file prod.env \
+            --name freedom_backend --env-file /home/billy/freedom/prod.env \
             -p 39890:6000 --restart always \
-            ilaipi/freedom-backend
+            ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.DOCKER_HUB_SPACE }}/${{ vars.DOCKER_IMAGE_NAME }}

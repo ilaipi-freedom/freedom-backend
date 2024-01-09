@@ -2,20 +2,57 @@ import { Injectable } from '@nestjs/common';
 import { CustomerPayment, Prisma } from '@prisma/client';
 import { reverse } from 'lodash';
 
-import { formatISO, utc } from 'src/common/date-helper';
+import { dateWhereAnd, fmtBy, formatISO, utc } from 'src/common/date-helper';
+import { pageOptions } from 'src/common/page-helper';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 
 @Injectable()
 export class CustomerPaymentService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(customerId: string) {
+  async list(
+    q: string,
+    customerId: string,
+    date: string[],
+    isAll: boolean,
+    page: number,
+    limit: number,
+  ) {
+    const dateWhere = dateWhereAnd(date, 'payTime');
     const where: Prisma.CustomerPaymentWhereInput = {
-      customerId,
+      ...(dateWhere ? { AND: dateWhere } : {}),
     };
+    if (q) {
+      where.customer = {
+        OR: [
+          { name: { contains: q } },
+          { weixin: { contains: q } },
+          { weixinId: { contains: q } },
+          { xianyu: { contains: q } },
+          { qq: { contains: q } },
+          { qqNum: { contains: q } },
+          { phone: { contains: q } },
+        ],
+      };
+    }
     const list = await this.prisma.customerPayment.findMany({
+      include: {
+        customer: {
+          select: {
+            id: true,
+            name: true,
+            weixin: true,
+            weixinId: true,
+            xianyu: true,
+            qq: true,
+            qqNum: true,
+            phone: true,
+          },
+        },
+      },
       where,
       orderBy: { payTime: 'desc' },
+      ...pageOptions(page, limit, isAll),
     });
     type TypeOut =
       | {
@@ -31,7 +68,20 @@ export class CustomerPaymentService {
       row.payTime = formatISO(payTime);
       result.push(row);
     }
-    return list;
+    if (isAll) {
+      return list;
+    }
+    const total = await this.prisma.customerPayment.count({ where });
+    if (!list.length) {
+      return { list, total };
+    }
+    return {
+      list: list.map((row: CustomerPayment) => ({
+        ...row,
+        payTime: fmtBy(row.payTime, 'yyyy-MM-dd HH:mm'),
+      })),
+      total,
+    };
   }
 
   async update(payload: Prisma.CustomerPaymentUpdateInput) {

@@ -32,19 +32,20 @@ model Account {
 }
 
 model Customer {
-  id               String    @id @default(cuid())
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  name             String?   @db.VarChar(255)
-  email            String?   @db.VarChar(255)
-  phone            String?   @db.VarChar(255)
-  weixin           String?   @db.VarChar(255)
-  weixinId         String?   @db.VarChar(255)
-  xianyu           String?   @db.VarChar(255)
-  qq               String?   @db.VarChar(255)
-  qqNum            String?   @db.VarChar(255)
-  firstMessageTime DateTime? @db.DateTime(0)
+  id               String            @id @default(cuid())
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  name             String?           @db.VarChar(255)
+  email            String?           @db.VarChar(255)
+  phone            String?           @db.VarChar(255)
+  weixin           String?           @db.VarChar(255)
+  weixinId         String?           @db.VarChar(255)
+  xianyu           String?           @db.VarChar(255)
+  qq               String?           @db.VarChar(255)
+  qqNum            String?           @db.VarChar(255)
+  firstMessageTime DateTime?         @db.DateTime(0)
   accountId        String
+  CustomerPayment  CustomerPayment[]
 
   @@map("customer")
 }
@@ -73,17 +74,18 @@ model CustomerOrder {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model CustomerPayment {
-  id         String   @id @default(cuid())
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  amount     Decimal  @db.Decimal(10, 2)
-  payTime    DateTime @db.DateTime(0)
-  payMethod  String   @default("闲鱼")
-  extra      String?  @db.Text
-  orderId    String?  @db.VarChar(36)
-  customerId String?  @db.VarChar(36)
-  accountId  String?  @db.VarChar(36)
-  projectId  String?  @db.VarChar(36)
+  id         String    @id @default(cuid())
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  amount     Decimal   @db.Decimal(10, 2)
+  payTime    DateTime  @db.DateTime(0)
+  payMethod  String    @default("闲鱼")
+  extra      String?   @db.Text
+  orderId    String?   @db.VarChar(36)
+  customerId String?   @db.VarChar(36)
+  accountId  String?   @db.VarChar(36)
+  projectId  String?   @db.VarChar(36)
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   @@map("customer_payment")
 }
