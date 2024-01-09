@@ -1,31 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import xlsx from 'node-xlsx';
-import { keyBy, unset } from 'lodash';
+import { keyBy, map, merge, unset } from 'lodash';
 import { addDays, addMilliseconds, subHours, subMinutes } from 'date-fns';
 import { utcToZonedTime } from 'date-fns-tz';
-import { Prisma } from '@prisma/client';
+import { Customer, Prisma } from '@prisma/client';
 
 import { formatISO, utc } from 'src/common/date-helper';
-import { Customer } from 'src/database/entities/customer.entity';
-import { CustomerOrder } from 'src/database/entities/customer-order.entity';
-import { OrderStatus } from 'src/types/OrderType';
-import { CustomerPayment } from 'src/database/entities/customer-payment.entity';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AuthSession } from 'src/types/Auth';
+import { OrderStatus } from 'src/types/OrderType';
 
 @Injectable()
 export class CustomerService {
-  constructor(
-    @InjectRepository(Customer)
-    private readonly customerRepository: Repository<Customer>,
-    @InjectRepository(CustomerOrder)
-    private readonly customerOrderRepository: Repository<CustomerOrder>,
-    @InjectRepository(CustomerPayment)
-    private readonly customerPaymentRepository: Repository<CustomerPayment>,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
   async list({ q, firstMessageTime, current, pageSize }) {
     const where: Prisma.CustomerWhereInput = {};
     if (q) {
@@ -101,42 +88,63 @@ export class CustomerService {
   }
 
   async staticticsNums() {
-    const totalCustomers = await this.customerRepository.count();
-    const { paidCustomers } = await this.customerPaymentRepository
-      .createQueryBuilder('payment')
-      .select('count(DISTINCT(customerId))', 'paidCustomers')
-      .getRawOne();
-    const totalPaid = await this.customerPaymentRepository.sum('amount');
-    const deliveryOrders = await this.customerOrderRepository.countBy({
-      status: OrderStatus.DELIVERY,
+    const totalCustomers = await this.prisma.customer.count();
+    const paidCustomers = await this.prisma.customerPayment.findMany({
+      distinct: ['customerId'],
+      select: { customerId: true },
+    });
+    // const totalPaid = await this.customerPaymentRepository.sum('amount');
+    const totalPaid = await this.prisma.customerPayment.aggregate({
+      _sum: { amount: true },
+    });
+    const deliveryOrders = await this.prisma.customerOrder.count({
+      where: { status: Number(OrderStatus.DELIVERY) },
     });
     return {
       totalCustomers,
-      paidCustomers: Number(paidCustomers),
-      totalPaid,
+      paidCustomers: paidCustomers.length,
+      totalPaid: totalPaid._sum.amount,
       deliveryOrders,
     };
   }
 
   async groupByPeriod() {
-    const qb = this.customerRepository.createQueryBuilder('customer');
-    const result = await qb
-      .select(
-        `
-          CASE
-            WHEN HOUR(customer.firstMessageTime) >= 7 AND HOUR(customer.firstMessageTime) < 11 THEN 'A'
-            WHEN HOUR(customer.firstMessageTime) >= 11 AND HOUR(customer.firstMessageTime) < 13 THEN 'B'
-            WHEN HOUR(customer.firstMessageTime) >= 13 AND HOUR(customer.firstMessageTime) < 17 THEN 'C'
-            WHEN HOUR(customer.firstMessageTime) >= 17 AND HOUR(customer.firstMessageTime) < 20 THEN 'D'
-            WHEN HOUR(customer.firstMessageTime) >= 20 AND HOUR(customer.firstMessageTime) < 23 THEN 'E'
-            ELSE 'F'
-          END AS timePeriod,
-          COUNT(*) as count
-        `,
-      )
-      .groupBy('timePeriod')
-      .orderBy('count', 'DESC')
-      .getRawMany();
+    let skip = 0;
+    const result = {};
+
+    while (true) {
+      const customers = await this.prisma.customer.findMany({
+        take: 1000,
+        skip,
+      });
+
+      if (customers.length === 0) {
+        break;
+      }
+
+      customers.forEach((customer) => {
+        const hour = customer.firstMessageTime.getHours();
+        let timePeriod = '';
+
+        if (hour >= 7 && hour < 11) {
+          timePeriod = 'A';
+        } else if (hour >= 11 && hour < 13) {
+          timePeriod = 'B';
+        } else if (hour >= 13 && hour < 17) {
+          timePeriod = 'C';
+        } else if (hour >= 17 && hour < 20) {
+          timePeriod = 'D';
+        } else if (hour >= 20 && hour < 23) {
+          timePeriod = 'E';
+        } else {
+          timePeriod = 'F';
+        }
+
+        result[timePeriod] = (result[timePeriod] || 0) + 1;
+      });
+
+      skip += customers.length;
+    }
     const timePeriod = [
       'A: 7-11',
       'B: 11-13',
@@ -149,35 +157,69 @@ export class CustomerService {
   }
 
   async mostPaidAmount() {
-    const qb = this.customerPaymentRepository.createQueryBuilder('payment');
-    const result = await qb
-      .select('payment.customerId, SUM(payment.amount)', 'totalAmount')
-      .addSelect('customer.weixin', 'weixin')
-      .addSelect('customer.weixinId', 'weixinId')
-      .addSelect('customer.xianyu', 'xianyu')
-      .innerJoin(Customer, 'customer', 'payment.customerId = customer.id')
-      .groupBy('payment.customerId')
-      .orderBy('totalAmount', 'DESC')
-      .limit(5)
-      .getRawMany();
-    const totalPaid = await this.customerPaymentRepository.sum('amount');
-    return { top5: result, totalPaid };
+    const result = await this.prisma.customerPayment.groupBy({
+      by: ['customerId'],
+      _sum: { amount: true },
+      orderBy: { _sum: { amount: 'desc' } },
+      take: 5,
+    });
+    const customerIds = map(result, 'customerId');
+    const customerMap: Record<string, any> = {};
+    if (customerIds.length) {
+      const customers = await this.prisma.customer.findMany({
+        where: { id: { in: customerIds } },
+        select: {
+          weixin: true,
+          weixinId: true,
+          xianyu: true,
+          id: true,
+        },
+      });
+      merge(customerMap, keyBy(customers, 'id'));
+    }
+    const totalPaid = await this.prisma.customerPayment.aggregate({
+      _sum: { amount: true },
+    });
+    return {
+      top5: result.map((row: any) => ({
+        customerId: row.customerId,
+        amount: row._sum.amount,
+        ...(customerMap[row.customerId] || {}),
+      })),
+      totalPaid: totalPaid._sum.amount,
+    };
   }
 
   async mostPaidTimes() {
-    const qb = this.customerPaymentRepository.createQueryBuilder('payment');
-    const result = await qb
-      .select('payment.customerId, COUNT(*)', 'paymentCount')
-      .addSelect('customer.weixin', 'weixin')
-      .addSelect('customer.weixinId', 'weixinId')
-      .addSelect('customer.xianyu', 'xianyu')
-      .innerJoin(Customer, 'customer', 'payment.customerId = customer.id')
-      .groupBy('payment.customerId')
-      .orderBy('paymentCount', 'DESC')
-      .limit(5)
-      .getRawMany();
-    const totalPaid = await this.customerPaymentRepository.count();
-    return { top5: result, totalPaid };
+    const result = await this.prisma.customerPayment.groupBy({
+      by: ['customerId'],
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+      take: 5,
+    });
+    const customerIds = map(result, 'customerId');
+    const customerMap: Record<string, any> = {};
+    if (customerIds.length) {
+      const customers = await this.prisma.customer.findMany({
+        where: { id: { in: customerIds } },
+        select: {
+          weixin: true,
+          weixinId: true,
+          xianyu: true,
+          id: true,
+        },
+      });
+      merge(customerMap, keyBy(customers, 'id'));
+    }
+    const totalPaid = await this.prisma.customerPayment.count();
+    return {
+      top5: result.map((row: any) => ({
+        customerId: row.customerId,
+        amount: row._count.id,
+        ...(customerMap[row.customerId] || {}),
+      })),
+      totalPaid: totalPaid,
+    };
   }
 
   async upload(file: Express.Multer.File) {
@@ -187,17 +229,20 @@ export class CustomerService {
     ordersData.shift();
     const paymentsData = sheets['收款'].data;
     paymentsData.shift();
-    const customerMap = new Map<string, Partial<Customer>>();
-    const orderMap = new Map<string, Partial<CustomerOrder>[]>();
-    const paymentMap = new Map<string, Partial<CustomerPayment>[]>();
+    const customerMap = new Map<string, Prisma.CustomerCreateInput>();
+    const orderMap = new Map<string, Prisma.CustomerOrderCreateInput[]>();
+    const paymentMap = new Map<string, Prisma.CustomerPaymentCreateInput[]>();
     for (const orderRow of ordersData) {
       if (!orderRow[0]) {
         continue;
       }
       const firstMessageTime = `${orderRow[0] + orderRow[1]}`;
-      const order: Partial<CustomerOrder> = {
+      const order: Prisma.CustomerOrderCreateInput = {
         firstMessageTime: this.handleTime(firstMessageTime),
-        status: orderRow[2] === '是' ? OrderStatus.DELIVERY : OrderStatus.NONE,
+        status:
+          orderRow[2] === '是'
+            ? Number(OrderStatus.DELIVERY)
+            : Number(OrderStatus.NONE),
         from: orderRow[6],
         orderTime: this.handleTime(orderRow[4]),
         deliveryTime: this.handleTime(orderRow[5]),
@@ -214,7 +259,7 @@ export class CustomerService {
         orderMap.get(customer.xianyu).push(order);
       } else {
         orderMap.set(customer.xianyu, [order]);
-        customer.firstMessageTime = order.firstMessageTime;
+        customer.firstMessageTime = new Date(order.firstMessageTime);
       }
       customerMap.set(customer.xianyu, customer);
     }
@@ -225,10 +270,10 @@ export class CustomerService {
       const customer = this.handleCustomer(
         paymentRow[3].replace('(', '（').replace(')', '）'),
       );
-      const payment: Partial<CustomerPayment> = {
+      const payment: Prisma.CustomerPaymentCreateInput = {
         payTime: this.handleTime(paymentRow[0]),
         payMethod: paymentRow[1],
-        amount: Number(paymentRow[2]),
+        amount: paymentRow[2],
         extra: paymentRow[5],
       };
       if (paymentMap.has(customer.xianyu)) {
@@ -238,26 +283,26 @@ export class CustomerService {
       }
     }
     for (const customer of customerMap.values()) {
-      const created = await this.customerRepository.save(customer);
+      const created = await this.prisma.customer.create({ data: customer });
       if (orderMap.has(customer.xianyu)) {
-        await this.customerOrderRepository.save(
-          orderMap
+        await this.prisma.customerOrder.createMany({
+          data: orderMap
             .get(customer.xianyu)
             .map((order) => ({ ...order, customer: created })),
-        );
+        });
       }
       if (paymentMap.has(customer.xianyu)) {
-        await this.customerPaymentRepository.save(
-          paymentMap
+        await this.prisma.customerPayment.createMany({
+          data: paymentMap
             .get(customer.xianyu)
             .map((payment) => ({ ...payment, customer: created })),
-        );
+        });
       }
     }
   }
 
-  handleCustomer(str: string): Partial<Customer> {
-    const result: Partial<Customer> = {};
+  handleCustomer(str: string): Prisma.CustomerCreateInput {
+    const result: Prisma.CustomerCreateInput = { accountId: '' };
 
     const xianyuMatch: RegExpMatchArray | null = str.match(/闲鱼：(.+)/);
     if (xianyuMatch) {

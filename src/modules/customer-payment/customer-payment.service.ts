@@ -1,20 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { CustomerPayment, Prisma } from '@prisma/client';
 import { reverse } from 'lodash';
-import { Prisma } from '@prisma/client';
 
 import { formatISO, utc } from 'src/common/date-helper';
-import { CustomerPayment } from 'src/database/entities/customer-payment.entity';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 
 @Injectable()
 export class CustomerPaymentService {
-  constructor(
-    @InjectRepository(CustomerPayment)
-    private readonly customerPaymentRepository: Repository<CustomerPayment>,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async list(customerId: string) {
     const where: Prisma.CustomerPaymentWhereInput = {
@@ -61,14 +54,13 @@ export class CustomerPaymentService {
   }
 
   async sumAmountByMonth() {
-    const qb = this.customerPaymentRepository.createQueryBuilder('payment');
-    const result = await qb
-      .select("DATE_FORMAT(payment.payTime, '%Y-%m')", 'month')
-      .addSelect('SUM(payment.amount)', 'totalAmount')
-      .groupBy('month')
-      .orderBy('month', 'DESC')
-      .limit(12)
-      .getRawMany();
-    return reverse(result);
+    const result = await this.prisma.$queryRaw`
+      select DATE_FORMAT(payTime, '%Y-%m') as month, SUM(amount) as totalAmount
+      from customer_payment
+      group by month
+      order by month desc
+      limit 12
+    `;
+    return reverse(result as []);
   }
 }
