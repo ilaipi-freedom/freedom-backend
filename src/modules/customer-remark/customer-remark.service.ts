@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
-import { CustomerRemark } from 'src/database/entities/customer-remark.entity';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 
 @Injectable()
@@ -19,9 +18,9 @@ export class CustomerRemarkService {
     return list;
   }
 
-  async update(payload: Partial<CustomerRemark>) {
+  async update(payload: Prisma.CustomerRemarkUpdateInput) {
     return this.prisma.customerRemark.update({
-      where: { id: payload.id },
+      where: { id: payload.id as string },
       data: payload,
     });
   }

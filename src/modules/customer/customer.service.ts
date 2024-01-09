@@ -81,7 +81,7 @@ export class CustomerService {
     return this.prisma.customer.create({
       data: {
         ...data,
-        accountId: user.id,
+        account: { connect: { id: user.id } },
         firstMessageTime: utc(data.firstMessageTime as string),
       },
     });
@@ -302,7 +302,9 @@ export class CustomerService {
   }
 
   handleCustomer(str: string): Prisma.CustomerCreateInput {
-    const result: Prisma.CustomerCreateInput = { accountId: '' };
+    const result: Prisma.CustomerCreateInput = {
+      account: { connect: { id: '' } },
+    };
 
     const xianyuMatch: RegExpMatchArray | null = str.match(/闲鱼：(.+)/);
     if (xianyuMatch) {
