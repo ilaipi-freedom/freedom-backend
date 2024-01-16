@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
+  Ip,
   Param,
   Post,
   Put,
@@ -21,11 +23,14 @@ export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
   @Get('/list')
   async list(
+    @Ip() ip: string,
+    @Headers('x-real-ip') xReal: string,
     @Query('q') q?: string,
     @Query('firstMessageTime') firstMessageTime?: string[],
     @Query('current') current?: number,
     @Query('pageSize') pageSize?: number,
   ) {
+    console.log('remote ip', ip, xReal);
     return this.customerService.list({
       q,
       firstMessageTime,
