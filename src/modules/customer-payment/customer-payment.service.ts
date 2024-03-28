@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CustomerPayment, Prisma } from '@prisma/client';
-import { reverse } from 'lodash';
+import { reverse, unset } from 'lodash';
 
 import { dateWhereAnd, fmtBy, formatISO, utc } from 'src/common/date-helper';
 import { pageOptions } from 'src/common/page-helper';
@@ -86,6 +86,7 @@ export class CustomerPaymentService {
   }
 
   async update(payload: Prisma.CustomerPaymentUpdateInput) {
+    unset(payload, 'customer');
     return this.prisma.customerPayment.update({
       where: { id: payload.id as string },
       data: {
