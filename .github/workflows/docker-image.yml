@@ -38,6 +38,8 @@ jobs:
 
     - name: executing remote ssh commands using ssh key
       uses: appleboy/ssh-action@v1.0.0
+      env:
+        INPUT_DOCKER_CONTAINER_NAME: ${{ vars.DOCKER_CONTAINER_NAME }}
       with:
         host: ${{ secrets.SSH_HOST_202 }}
         username: ${{ secrets.SSH_USERNAME_202 }}
@@ -46,9 +48,11 @@ jobs:
         script: |
           docker pull ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.DOCKER_HUB_SPACE }}/${{ vars.DOCKER_IMAGE_NAME }}
 
-          docker rm -f freedom_backend
+          if [ "$(docker ps -aq -f name=${INPUT_DOCKER_CONTAINER_NAME})" ]; then
+            docker rm -f ${INPUT_DOCKER_CONTAINER_NAME}
+          fi
 
-          docker run -dit --link mysql8 --link redis7 \
-            --name freedom_backend --env-file /home/billy/freedom/prod.env \
+          docker run -dit --network freedom \
+            --name ${INPUT_DOCKER_CONTAINER_NAME} --env-file /home/billy/freedom/prod.env \
             -p 39890:6000 --restart always \
             ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.DOCKER_HUB_SPACE }}/${{ vars.DOCKER_IMAGE_NAME }}
