@@ -160,6 +160,7 @@ export class CustomerService {
     const result = await this.prisma.customerPayment.groupBy({
       by: ['customerId'],
       _sum: { amount: true },
+      _count: { id: true },
       orderBy: { _sum: { amount: 'desc' } },
       take: 5,
     });
@@ -183,7 +184,8 @@ export class CustomerService {
     return {
       top5: result.map((row: any) => ({
         customerId: row.customerId,
-        amount: row._sum.amount,
+        sum: row._sum.amount,
+        count: row._count.id,
         ...(customerMap[row.customerId] || {}),
       })),
       totalPaid: totalPaid._sum.amount,
@@ -194,8 +196,9 @@ export class CustomerService {
     const result = await this.prisma.customerPayment.groupBy({
       by: ['customerId'],
       _count: { id: true },
+      _sum: { amount: true },
       orderBy: { _count: { id: 'desc' } },
-      take: 5,
+      take: 10,
     });
     const customerIds = map(result, 'customerId');
     const customerMap: Record<string, any> = {};
@@ -215,7 +218,8 @@ export class CustomerService {
     return {
       top5: result.map((row: any) => ({
         customerId: row.customerId,
-        amount: row._count.id,
+        count: row._count.id,
+        sum: row._sum.amount,
         ...(customerMap[row.customerId] || {}),
       })),
       totalPaid: totalPaid,
