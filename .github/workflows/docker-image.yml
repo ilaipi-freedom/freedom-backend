@@ -47,4 +47,5 @@ jobs:
         port: ${{ secrets.SSH_PORT_202 }}
         script: |
           echo -n "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin ${{ secrets.DOCKER_REGISTRY }}
-          cd /home/billy/freedom && docker compose up -d --pull always && docker restart pve202-nginx
+          docker pull ${{ secrets.DOCKER_REGISTRY }}/${{ secrets.DOCKER_HUB_SPACE }}/${{ vars.DOCKER_IMAGE_NAME }}
+          cd /home/billy/freedom && docker compose up -d freedom_backend && docker down pve202-nginx && docker up -d pve202-nginx
